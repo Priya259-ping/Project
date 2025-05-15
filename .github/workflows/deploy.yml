@@ -1,45 +1,46 @@
 name : CI/CD with Terraform
 on:
  push:
- branches:
-   - Complete-CI/CD-WITH-Terraform-AWS
+  branches:
+   - Complete-CI/CD-with-Terraform-AWS
 
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ SECRETES.ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ SECRETES.AWS_SECRET_ACCESS_KEY }}
-  TF_STATE_BUCKET_NAME:  ${{ SECRETES.TF_STATE_BUCKET_NAME }}
-  PRIVATE_SSH_KEY:  ${{ SECRETES.PRIVATE_SSH_KEY }}
-  PUBLIC_SSH_KEY:  ${{ SECRETES.PUBLIC_SSH_KEY }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TF_STATE_BUCKET_NAME:  ${{ secrets.TF_STATE_BUCKET_NAME }}
+  PRIVATE_SSH_KEY:  ${{ secrets.AWS_PRIVATE_SSH_KEY }}
+  PUBLIC_SSH_KEY:  ${{ secrets.AWS_PUBLIC_SSH_KEY }}
   AWS_REGION: us-east-1
 
 
 jobs:
-deploy-infra:
-runs-on: ubuntu-latest
-steps:
- - name: Checkout
-   uses: actions/checkour@v2
- - name: setup Terraform 
-   uses: hashcorp/setup-terraform@v1
-   with:
+ deploy-infra:
+  runs-on: ubuntu-latest
+  steps:
+   - name: Checkout
+     uses: actions/checkour@v2
+   - name: setup Terraform 
+     uses: hashcorp/setup-terraform@v1
+     with:
       terraform_wrapper: false
- - name: Terrafoorm init
-   id: init
-   run: terraform init -backend-config="bucket=TF_STATE_BUCKET_NAME" -backend-config="region=us-east-1"
-   working-directory: ./terraform
- - name: Terraform Plan
-   id: plan
-   run: |-
-    terrform plan \
-    -var="region=us-east-1" \
-    -var="public_key-$PUBLIC_SSH_KEY" \
-    -var="private_key=$PRIVATE_SSH_KEY" \
-    -var="key-name=deployer-key" \
-    -out=Plan
-   working-directory: ./terraform
- - name: Terraform Apply
-   id: apply
-   run: terraform apply Plan
-   working-directory: ./terraform
+   - name: Terrafoorm init
+     id: init
+     run: terraform init -backend-config="bucket=TF_STATE_BUCKET_NAME" -backend-config="region=us-east-1"
+     working-directory: ./terraform
+   - name: Terraform Plan
+     id: plan
+     run: |-
+      terrform plan \
+      -var="region=us-east-1" \
+       -var="public_key-$PUBLIC_SSH_KEY" \
+       -var="private_key=$PRIVATE_SSH_KEY" \
+      -var="key-name=deployer-key" \
+      -out=Plan
+     working-directory: ./terraform
+   - name: Terraform Apply
+     id: apply
+     run: terraform apply Plan
+     working-directory: ./terraform
+
 
